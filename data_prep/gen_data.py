@@ -16,8 +16,8 @@ def gen_data(subject, target_path):
         Processed file
     """
 
-    DIM_FEAT1 = 4096
-    DIM_FEAT2 = 4096
+    DIM_FEAT1 = 4096*10
+    DIM_FEAT2 = 4096*10
 
     data_x1 = np.empty((0, DIM_FEAT1))
     data_x2 = np.empty((0, DIM_FEAT2))

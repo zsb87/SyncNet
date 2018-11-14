@@ -32,30 +32,40 @@ class Net(nn.Module):
         super(Net, self).__init__()
         # 1 input image channel, 6 output channels, 5x5 square convolution
         # visual branch
-        self.conv1a = nn.Conv1d(1, 64, 5)
+        self.conv1a = nn.Conv1d(4096, 64, 5)
         self.conv2a = nn.Conv1d(64, 512, 25)
         self.conv3a = nn.Conv1d(512, 1024, 25)
         # sensor branch
-        self.conv1b = nn.Conv1d(1, 64, 5)
+        self.conv1b = nn.Conv1d(4096, 64, 5)
         self.conv2b = nn.Conv1d(64, 512, 25)
         self.conv3b = nn.Conv1d(512, 1024, 25)
 
     def forward(self, input_data):
-        x_v = input_data[:,0:4096].unsqueeze(1)
-        x_s = input_data[:,4096:].unsqueeze(1)
+        x_v = input_data[:,0:40960].reshape(200,4096,10)
+        x_s = input_data[:,40960:].reshape(200,4096,10)
         # visual branch
         # Max pooling over a 4 window
         tmp_a = self.conv1a(x_v)
+        print('after conv:')
+        print(tmp_a.size())
         tmp_b = F.relu(tmp_a)
+        print('after relu')
+        print(tmp_b.size())
         x_v = F.max_pool1d(tmp_b, 4, stride=2)
+        print('after max pooling:')
+        print(x_v.size())
         x_v = F.max_pool1d(F.relu(self.conv2a(x_v)), 4, stride=2)
+        print('after conv, relu, max pooling:')
+        print(x_v.size())
         x_v = F.relu(self.conv3a(x_v))
-        x_v = F.max_pool1d(x_v, x_v.size()[1]).squeeze()
+        print('after conv relu:')
+        print(x_v.size())
+        x_v = F.max_pool1d(x_v, x_v.size()[2]).squeeze()
         # sensor branch
         x_s = F.max_pool1d(F.relu(self.conv1b(x_s)), 4, stride=2)
         x_s = F.max_pool1d(F.relu(self.conv2b(x_s)), 4, stride=2)
         x_s = F.relu(self.conv3b(x_s))
-        x_s = F.max_pool1d(x_s, x_s.size()[1]).squeeze()
+        x_s = F.max_pool1d(x_s, x_s.size()[2]).squeeze()
         x_out = torch.dot(x_v, x_s)
         return x
 
