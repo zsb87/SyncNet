@@ -80,8 +80,9 @@ def train_net(net, trainloader, epochs):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     net.to(device)
     criterion = nn.L1Loss()#CrossEntropyLoss()
-    optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
-    
+    optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9,weight_decay=0.001)
+    correct = 0
+    total = 0
     for epoch in range(epochs):  # loop over the dataset multiple times
     
         running_loss = 0.0
@@ -102,13 +103,21 @@ def train_net(net, trainloader, epochs):
             #print(loss)
             loss.backward()
             optimizer.step()
-    
+            predicted = outputs.data > 0.5
+            predicted = predicted.type(torch.cuda.ByteTensor)
+            correct += (predicted == labels).sum().item()
+            total += labels.size(0)
+
             # print statistics
             running_loss += loss.item()
             if i % 2000 == 1999:    # print every 2000 mini-batches
                 print('[%d, %5d] loss: %.3f' %
                       (epoch + 1, i + 1, running_loss / 2000))
                 running_loss = 0.0
+        print('epoch: ', epoch, ', loss: ', running_loss/667)
+        print('total:', total)
+        print('Accuracy of the network on the 10000 test images: %d %%' % (
+            100 * correct / total))
     
     print('Finished Training')    
     
@@ -128,9 +137,12 @@ def test_net(net, testloader):
             total += labels.size(0)
             #correct += (predicted == labels).sum().item()
             temp = outputs.data - labels.type(torch.cuda.FloatTensor)
-            loss += torch.abs(temp)    
-    #print('Accuracy of the network on the 10000 test images: %d %%' % (
-    #    100 * correct / total))
+            predicted = outputs.data > 0.5
+            predicted = predicted.type(torch.cuda.ByteTensor)
+            correct += (predicted == labels).sum().item()
+            loss += torch.abs(temp)
+    print('Accuracy of the network on the 10000 test images: %d %%' % (
+        100 * correct / total))
     print('loss = ', loss/total)
     
 def main():
