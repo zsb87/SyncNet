@@ -47,6 +47,8 @@ def gen_data(subject, target_path):
     # shuffle
     data = np.hstack((data_x, data_y))
     np.random.shuffle(data)
+    data_x = data[:,:-1]
+    data_y = data[:,-1]
 
     # Dataset is segmented into train and test
     nb_training_samples = int(len(data_y)*2/3)

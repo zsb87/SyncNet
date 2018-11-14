@@ -123,7 +123,7 @@ def test_net(net, testloader):
             inputs, labels = data
             inputs, labels = inputs.to(device), labels.to(device).squeeze().unsqueeze(0)
             outputs = net(inputs)
-            print(outputs.data)
+            print(outputs.data,labels)
             #_, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             #correct += (predicted == labels).sum().item()
@@ -145,7 +145,7 @@ def main():
     testloader = DataLoader(mydataset(X_test, y_test), batch_size=1,
                                          shuffle=False, num_workers=2)
     net = Net()
-    train_net(net, trainloader, 1)
+    train_net(net, trainloader, 100)
     test_net(net, testloader)
     
     #params = list(net.parameters())
