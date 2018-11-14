@@ -46,29 +46,31 @@ class Net(nn.Module):
         # visual branch
         # Max pooling over a 4 window
         tmp_a = self.conv1a(x_v)
-        print('after conv:')
-        print(tmp_a.size())
+       # print('after conv:')
+       # print(tmp_a.size())
         tmp_b = F.relu(tmp_a)
-        print('after relu')
-        print(tmp_b.size())
+       # print('after relu')
+        #print(tmp_b.size())
         x_v = F.max_pool1d(tmp_b, 4, stride=2)
-        print('after max pooling:')
-        print(x_v.size())
+        #print('after max pooling:')
+        #print(x_v.size())
         x_v = F.max_pool1d(F.relu(self.conv2a(x_v)), 4, stride=2)
-        print('after conv, relu, max pooling:')
-        print(x_v.size())
+        #print('after conv, relu, max pooling:')
+        #print(x_v.size())
         x_v = F.relu(self.conv3a(x_v))
-        print('after conv relu:')
-        print(x_v.size())
+        #print('after conv relu:')
+        #print(x_v.size())
         x_v = F.max_pool1d(x_v, x_v.size()[2]).squeeze()
         # sensor branch
         x_s = F.max_pool1d(F.relu(self.conv1b(x_s)), 4, stride=2)
         x_s = F.max_pool1d(F.relu(self.conv2b(x_s)), 4, stride=2)
         x_s = F.relu(self.conv3b(x_s))
         x_s = F.max_pool1d(x_s, x_s.size()[2]).squeeze()
-        print(x_v.size())
-        print(x_s.size())
+        #print(x_v.size())
+        #print(x_s.size())
         x_out = torch.dot(x_v, x_s)
+        #x_temp = 1-x_out
+        #x_out = torch.Tensor([x_temp,x_out])
         return x_out
 
 net = Net()
@@ -77,7 +79,7 @@ print(net)
 def train_net(net, trainloader, epochs):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     net.to(device)
-    criterion = nn.CrossEntropyLoss()
+    criterion = nn.L1Loss()#CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
     
     for epoch in range(epochs):  # loop over the dataset multiple times
@@ -86,14 +88,18 @@ def train_net(net, trainloader, epochs):
         for i, data in enumerate(trainloader, 0):
             # get the inputs
             inputs, labels = data
-            inputs, labels = inputs.to(device), labels.to(device)
+            inputs, labels = inputs.to(device), labels.to(device).squeeze().unsqueeze(0).type(torch.cuda.FloatTensor)
             
             # zero the parameter gradients
             optimizer.zero_grad()
     
             # forward + backward + optimize
             outputs = net(inputs)
+            outputs = outputs.unsqueeze(0)
+           # print(outputs)
+           # print(labels)
             loss = criterion(outputs, labels)
+            #print(loss)
             loss.backward()
             optimizer.step()
     
@@ -107,19 +113,25 @@ def train_net(net, trainloader, epochs):
     print('Finished Training')    
     
 def test_net(net, testloader):
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     correct = 0
     total = 0
+    net.to(device)
+    loss = 0
     with torch.no_grad():
         for data in testloader:
             inputs, labels = data
-            inputs, labels = inputs.to(device), labels.to(device)
+            inputs, labels = inputs.to(device), labels.to(device).squeeze().unsqueeze(0)
             outputs = net(inputs)
-            _, predicted = torch.max(outputs.data, 1)
+            print(outputs.data)
+            #_, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
-            correct += (predicted == labels).sum().item()
-    
-    print('Accuracy of the network on the 10000 test images: %d %%' % (
-        100 * correct / total))
+            #correct += (predicted == labels).sum().item()
+            temp = outputs.data - labels.type(torch.cuda.FloatTensor)
+            loss += torch.abs(temp)    
+    #print('Accuracy of the network on the 10000 test images: %d %%' % (
+    #    100 * correct / total))
+    print('loss = ', loss/total)
     
 def main():
     
@@ -130,7 +142,7 @@ def main():
 
     trainloader = DataLoader(dataset=mydataset(X_train, y_train),
                              batch_size=batch_size, shuffle=True)
-    testloader = DataLoader(mydataset(X_test, y_test), batch_size=4,
+    testloader = DataLoader(mydataset(X_test, y_test), batch_size=1,
                                          shuffle=False, num_workers=2)
     net = Net()
     train_net(net, trainloader, 1)
