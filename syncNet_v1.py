@@ -81,9 +81,10 @@ def train_net(net, trainloader, epochs):
     net.to(device)
     criterion = nn.L1Loss()#CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9,weight_decay=0.001)
-    correct = 0
-    total = 0
+
     for epoch in range(epochs):  # loop over the dataset multiple times
+        total = 0
+        correct = 0
     
         running_loss = 0.0
         for i, data in enumerate(trainloader, 0):
@@ -105,6 +106,7 @@ def train_net(net, trainloader, epochs):
             optimizer.step()
             predicted = outputs.data > 0.5
             predicted = predicted.type(torch.cuda.ByteTensor)
+            labels = labels.type(torch.cuda.ByteTensor)
             correct += (predicted == labels).sum().item()
             total += labels.size(0)
 
