@@ -5,7 +5,7 @@ import numpy as np
 import pickle as cp
 from io import BytesIO
 from pandas import Series
-
+from numpy import linalg as LA
 
 
 def gen_data(subject, target_path):
@@ -29,7 +29,11 @@ def gen_data(subject, target_path):
             x1 = np.random.normal(size=(1, DIM_FEAT1))
             x2 = np.random.normal(size=(1, DIM_FEAT2))
             x = np.hstack((x1, x2))
-            y = np.array(0).reshape((1,-1))
+            normdist = LA.norm(x1-x2)
+            if normdist>0.5:
+                y = np.array(0).reshape((1,-1))
+            else:
+                y = np.array(1).reshape((1,-1))
             data_x = np.vstack((data_x, x))
             data_y = np.vstack([data_y, y])
 
