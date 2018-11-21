@@ -60,7 +60,20 @@ class Net(nn.Module):
         x_s = F.max_pool1d(F.relu(self.conv2b(x_s)), 4, stride=2)
         x_s = F.relu(self.conv3b(x_s))
         x_s = F.max_pool1d(x_s, x_s.size()[2])
-        x_out = torch.bmm(x_v.view(input_data.size()[0], 1, -1), x_s.view(input_data.size()[0], -1, 1)).reshape((-1, 1))
+        
+        x_v = x_v.view(input_data.size()[0], 1, -1)
+        x_v_norm = x_v.norm(p=2, dim=2, keepdim=True)
+        x_v_normalized = x_v.div(x_v_norm.expand_as(x_v))
+        
+        x_s = x_s.view(input_data.size()[0], -1, 1)
+        x_s_norm = x_s.norm(p=2, dim=2, keepdim=True)
+        x_s_normalized = x_s.div(x_s_norm.expand_as(x_s))
+        
+        
+        
+        #x_out = torch.bmm(x_v_normalized, x_s_normalized).reshape((-1, 1))
+        
+        x_out = torch.bmm(x_v, x_s).reshape((-1, 1))
         return torch.cat((1 - x_out, x_out), 1)
 
 
