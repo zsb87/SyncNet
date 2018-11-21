@@ -66,7 +66,7 @@ class Net(nn.Module):
         x_v_normalized = x_v.div(x_v_norm.expand_as(x_v))
         
         x_s = x_s.view(input_data.size()[0], -1, 1)
-        x_s_norm = x_s.norm(p=2, dim=2, keepdim=True)
+        x_s_norm = x_s.norm(p=2, dim=1, keepdim=True)
         x_s_normalized = x_s.div(x_s_norm.expand_as(x_s))
         
         
