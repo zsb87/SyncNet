@@ -144,30 +144,37 @@ class Net2d(nn.Module):
         size = input_data.size()[1]
         x_v = input_data[:, :size // 2]
         x_s = input_data[:, size // 2:]
+
         # visual branch
         # Max pooling over a 4 window
 
         x_v = F.max_pool2d(F.relu(self.conv1a(x_v)), (1, 4), stride=2) # relu+maxpool or maxpool+relu
         x_v = F.max_pool2d(F.relu(self.conv2a(x_v)), (1, 4), stride=2)
         x_v = F.relu(self.conv3a(x_v))
-        x_v = F.max_pool2d(x_v, x_v.size()[2])
+        # print(x_v.size())
+        # print(x_v.size()[2])
+        # x_v = F.max_pool2d(x_v, x_v.size()[2])
+        # print(x_v.size())
+
         # sensor branch
         x_s = F.max_pool2d(F.relu(self.conv1b(x_s)), (1, 4), stride=2)
         x_s = F.max_pool2d(F.relu(self.conv2b(x_s)), (1, 4), stride=2)
         x_s = F.relu(self.conv3b(x_s))
-        x_s = F.max_pool2d(x_s, x_s.size()[2])
+        # x_s = F.max_pool2d(x_s, x_s.size()[2])
         
         x_v = x_v.view(input_data.size()[0], 1, -1)
-        x_v_norm = x_v.norm(p=2, dim=2, keepdim=True)
-        x_v_normalized = x_v.div(x_v_norm.expand_as(x_v))
+        # print(x_v.size())
+
+        # x_v_norm = x_v.norm(p=2, dim=2, keepdim=True)
+        # x_v_normalized = x_v.div(x_v_norm.expand_as(x_v))
         
         x_s = x_s.view(input_data.size()[0], -1, 1)
-        x_s_norm = x_s.norm(p=2, dim=1, keepdim=True)
-        x_s_normalized = x_s.div(x_s_norm.expand_as(x_s))
+        # x_s_norm = x_s.norm(p=2, dim=1, keepdim=True)
+        # x_s_normalized = x_s.div(x_s_norm.expand_as(x_s))
         
-        x_out = torch.bmm(x_v_normalized, x_s_normalized).reshape((-1, 1))
+        # x_out = torch.bmm(x_v_normalized, x_s_normalized).reshape((-1, 1))
         
-        # x_out = torch.bmm(x_v, x_s).reshape((-1, 1))
+        x_out = torch.bmm(x_v, x_s).reshape((-1, 1))
         return torch.cat((1 - x_out, x_out), 1)
 
 
@@ -265,7 +272,10 @@ def main():
 
 
 def main2d():
-    noise_ratio = float(sys.argv[1])
+
+    noise_ratio = 0
+    # noise_ratio = float(sys.argv[1])
+    print('noise_ratio: ', noise_ratio)
     batch_size = 1
     trainloader = DataLoader(dataset=RandomDataset2d(10000, 256, noise_ratio),
                              batch_size=batch_size, shuffle=True)
@@ -283,7 +293,7 @@ def main2d():
 
 
 if __name__ == "__main__":
-    print(os.path.basename(__file__))
+    # print(os.path.basename(__file__))
     main2d()
 
     #load model parameters
