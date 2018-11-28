@@ -264,7 +264,7 @@ def main2d():
                            batch_size=batch_size, shuffle=True)
     testloader = DataLoader(dataset=RandomDataset2d(2000, 256), batch_size=batch_size,
                             shuffle=False, num_workers=2)
-    net = Net()
+    net = Net2d()
     train_net(net, trainloader, valloader=valloader, epochs=50)
     test_net(net, testloader)
 
