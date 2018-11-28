@@ -262,8 +262,8 @@ def main():
 
 
 def main2d():
+    noise_ratio = float(sys.argv[1])
     batch_size = 1
-    noise_ratio = 0.01
     trainloader = DataLoader(dataset=RandomDataset2d(10000, 256, noise_ratio),
                              batch_size=batch_size, shuffle=True)
     valloader = DataLoader(dataset=RandomDataset2d(2000, 256, noise_ratio),
@@ -271,7 +271,7 @@ def main2d():
     testloader = DataLoader(dataset=RandomDataset2d(2000, 256, noise_ratio), batch_size=batch_size,
                             shuffle=False, num_workers=2)
     net = Net2d()
-    train_net(net, trainloader, valloader=valloader, epochs=25)
+    train_net(net, trainloader, valloader=valloader, epochs=20)
     test_net(net, testloader)
 
     #params = list(net.parameters())
