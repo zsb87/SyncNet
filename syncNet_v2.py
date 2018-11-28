@@ -55,8 +55,8 @@ class RandomDataset(Dataset):
 
 class RandomDataset2d(Dataset):
 
-    def __init__(self, nsample, height):
-        width = 60
+    def __init__(self, nsample, width):
+        height = 40
         self.len = 3 * nsample
         self.data_v = torch.randn(nsample, 1, height, width) # channel: 1
         self.data_s = torch.sin(self.data_v)
@@ -130,12 +130,12 @@ class Net2d(nn.Module):
         # 1 input image channel, 6 output channels, 5x5 square convolution
         # visual branch
         self.conv1a = nn.Conv2d(1, 64, (40, 5), stride=1)
-        self.conv2a = nn.Conv1d(64, 512, (1, 25), stride=1)
-        self.conv3a = nn.Conv1d(512, 1024, (1, 25), stride=1)
+        self.conv2a = nn.Conv2d(64, 512, (1, 25), stride=1)
+        self.conv3a = nn.Conv2d(512, 1024, (1, 25), stride=1)
         # sensor branch
         self.conv1b = nn.Conv2d(1, 64, (40, 5), stride=1)
-        self.conv2b = nn.Conv1d(64, 512, (1, 25), stride=1)
-        self.conv3b = nn.Conv1d(512, 1024, (1, 25), stride=1)
+        self.conv2b = nn.Conv2d(64, 512, (1, 25), stride=1)
+        self.conv3b = nn.Conv2d(512, 1024, (1, 25), stride=1)
 
 
     def forward(self, input_data):
@@ -144,15 +144,16 @@ class Net2d(nn.Module):
         x_s = input_data[:, size // 2:]
         # visual branch
         # Max pooling over a 4 window
-        x_v = F.max_pool1d(F.relu(self.conv1a(x_v)), 4, stride=2) # relu+maxpool or maxpool+relu
-        x_v = F.max_pool1d(F.relu(self.conv2a(x_v)), 4, stride=2)
+
+        x_v = F.max_pool2d(F.relu(self.conv1a(x_v)), (1, 4), stride=2) # relu+maxpool or maxpool+relu
+        x_v = F.max_pool2d(F.relu(self.conv2a(x_v)), (1, 4), stride=2)
         x_v = F.relu(self.conv3a(x_v))
-        x_v = F.max_pool1d(x_v, x_v.size()[2])
+        x_v = F.max_pool2d(x_v, x_v.size()[2])
         # sensor branch
-        x_s = F.max_pool1d(F.relu(self.conv1b(x_s)), 4, stride=2)
-        x_s = F.max_pool1d(F.relu(self.conv2b(x_s)), 4, stride=2)
+        x_s = F.max_pool2d(F.relu(self.conv1b(x_s)), (1, 4), stride=2)
+        x_s = F.max_pool2d(F.relu(self.conv2b(x_s)), (1, 4), stride=2)
         x_s = F.relu(self.conv3b(x_s))
-        x_s = F.max_pool1d(x_s, x_s.size()[2])
+        x_s = F.max_pool2d(x_s, x_s.size()[2])
         
         x_v = x_v.view(input_data.size()[0], 1, -1)
         x_v_norm = x_v.norm(p=2, dim=2, keepdim=True)
@@ -276,6 +277,17 @@ def main2d():
 
 if __name__ == "__main__":
     main2d()
+
+    # # pool of square window of size=3, stride=2
+    # m = nn.MaxPool2d(3, stride=2)
+    # # pool of non-square window
+    # # m = nn.MaxPool2d((3, 2), stride=(2, 1))
+    # input = torch.randn(20, 16, 50, 32)
+    # output = m(input)
+
+    # print(input.size())
+    # print(output.size())
+
 
     # for index in range(1000):
     # index = 0
