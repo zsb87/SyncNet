@@ -1,11 +1,13 @@
+import os
 import sys
+import random
+import datetime
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 #import matplotlib.pyplot as plt
-import numpy as np
-import random
 import torch.optim as optim
 from tensorboardX import SummaryWriter
 writer = SummaryWriter(comment=str(random.randint(0,100)))
@@ -213,8 +215,8 @@ def train_net(net, trainloader, valloader=None, epochs=1):
                 running_total = running_correct = 0
 
         # save model parameters
-        if epoch%5 == 0:
-            torch.save(net.state_dict(), 'save_checkpoint_epoch'+str(epoch)+'.pt')
+        if epoch%5 == 4:
+            torch.save(net.state_dict(), 'save_checkpoint_epoch'+str(epoch)+'_'+str(datetime.datetime.now())+'.pt')
 
         with torch.no_grad():
             for data in valloader:
@@ -281,6 +283,7 @@ def main2d():
 
 
 if __name__ == "__main__":
+    print(os.path.basename(__file__))
     main2d()
 
     #load model parameters
