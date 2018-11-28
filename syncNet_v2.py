@@ -9,6 +9,7 @@ import torch.optim as optim
 from tensorboardX import SummaryWriter
 writer = SummaryWriter(comment=str(random.randint(0,100)))
 
+
 class RandomDatasetShift(Dataset):
 
     def __init__(self, nsample, size):
@@ -55,11 +56,11 @@ class RandomDataset(Dataset):
 
 class RandomDataset2d(Dataset):
 
-    def __init__(self, nsample, width):
+    def __init__(self, nsample, width, noise_ratio):
         height = 40
         self.len = 3 * nsample
         self.data_v = torch.randn(nsample, 1, height, width) # channel: 1
-        self.data_s = torch.sin(self.data_v)
+        self.data_s = torch.sin(self.data_v) + noise_ratio * torch.randn(nsample, 1, height, width) 
         self.v_neg_inc = np.random.randint(1, nsample, (nsample,))
         self.s_neg_inc = np.random.randint(1, nsample, (nsample,))
 
@@ -135,7 +136,6 @@ class Net2d(nn.Module):
         self.conv1b = nn.Conv2d(1, 64, (40, 5), stride=1)
         self.conv2b = nn.Conv2d(64, 512, (1, 25), stride=1)
         self.conv3b = nn.Conv2d(512, 1024, (1, 25), stride=1)
-
 
     def forward(self, input_data):
         size = input_data.size()[1]
@@ -263,11 +263,12 @@ def main():
 
 def main2d():
     batch_size = 1
-    trainloader = DataLoader(dataset=RandomDataset2d(10000, 256),
+    noise_ratio = 0.01
+    trainloader = DataLoader(dataset=RandomDataset2d(10000, 256, noise_ratio),
                              batch_size=batch_size, shuffle=True)
-    valloader = DataLoader(dataset=RandomDataset2d(2000, 256),
+    valloader = DataLoader(dataset=RandomDataset2d(2000, 256, noise_ratio),
                            batch_size=batch_size, shuffle=True)
-    testloader = DataLoader(dataset=RandomDataset2d(2000, 256), batch_size=batch_size,
+    testloader = DataLoader(dataset=RandomDataset2d(2000, 256, noise_ratio), batch_size=batch_size,
                             shuffle=False, num_workers=2)
     net = Net2d()
     train_net(net, trainloader, valloader=valloader, epochs=25)
@@ -280,3 +281,8 @@ def main2d():
 
 if __name__ == "__main__":
     main2d()
+
+    #load model parameters
+    # net = Net2d()
+    # net.load_state_dict(torch.load(PATH))
+
