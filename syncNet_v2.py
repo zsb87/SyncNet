@@ -210,6 +210,11 @@ def train_net(net, trainloader, valloader=None, epochs=1):
                       (epoch + 1, i + 1, running_loss / 2000, 100 * running_correct / running_total))
                 running_loss = 0.0
                 running_total = running_correct = 0
+
+        # save model parameters
+        if epoch%5 == 0:
+            torch.save(net.state_dict(), 'save_checkpoint_epoch'+str(epoch)+'.pt')
+
         with torch.no_grad():
             for data in valloader:
                 inputs, labels = data
@@ -265,7 +270,7 @@ def main2d():
     testloader = DataLoader(dataset=RandomDataset2d(2000, 256), batch_size=batch_size,
                             shuffle=False, num_workers=2)
     net = Net2d()
-    train_net(net, trainloader, valloader=valloader, epochs=50)
+    train_net(net, trainloader, valloader=valloader, epochs=25)
     test_net(net, testloader)
 
     #params = list(net.parameters())
