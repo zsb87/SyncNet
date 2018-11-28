@@ -75,7 +75,6 @@ class RandomDataset2d(Dataset):
         return self.len
 
 
-
 # class Net(nn.Module):
 
 #     def __init__(self):
@@ -163,9 +162,9 @@ class Net2d(nn.Module):
         x_s_norm = x_s.norm(p=2, dim=1, keepdim=True)
         x_s_normalized = x_s.div(x_s_norm.expand_as(x_s))
         
-        #x_out = torch.bmm(x_v_normalized, x_s_normalized).reshape((-1, 1))
+        x_out = torch.bmm(x_v_normalized, x_s_normalized).reshape((-1, 1))
         
-        x_out = torch.bmm(x_v, x_s).reshape((-1, 1))
+        # x_out = torch.bmm(x_v, x_s).reshape((-1, 1))
         return torch.cat((1 - x_out, x_out), 1)
 
 
@@ -269,7 +268,6 @@ def main2d():
     train_net(net, trainloader, valloader=valloader, epochs=50)
     test_net(net, testloader)
 
-
     #params = list(net.parameters())
     # print(len(params))
     # print(params[0].size())
@@ -277,38 +275,3 @@ def main2d():
 
 if __name__ == "__main__":
     main2d()
-
-    # # pool of square window of size=3, stride=2
-    # m = nn.MaxPool2d(3, stride=2)
-    # # pool of non-square window
-    # # m = nn.MaxPool2d((3, 2), stride=(2, 1))
-    # input = torch.randn(20, 16, 50, 32)
-    # output = m(input)
-
-    # print(input.size())
-    # print(output.size())
-
-
-    # for index in range(1000):
-    # index = 0
-    # size = 8
-    # length = 5
-    # if 1:
-    #     nsample = 10
-    #     len = 3 * nsample
-    #     data_v = torch.randn(nsample, size, length)
-    #     data_s = torch.sin(data_v)
-    #     v_neg_inc = np.random.randint(1, nsample, (nsample,))
-    #     s_neg_inc = np.random.randint(1, nsample, (nsample,))
-
-    #     if index % 3 == 0:
-    #         print(index // 3, index // 3)
-    #         print(torch.cat((data_v[index // 3], data_s[index // 3]), 0), 1)
-    #     elif index % 3 == 1:
-    #         print(index // 3, (index // 3 + v_neg_inc[index // 3]) % (len // 3))
-    #         # return torch.cat((data_v[index // 3], data_s[(index // 3 + v_neg_inc[index // 3]) % (len // 3)]), 0), 0
-    #     else:
-    #         print((index // 3 + s_neg_inc[index // 3]) % (len // 3), index // 3)
-    #         # return torch.cat((data_v[(index // 3 + s_neg_inc[index // 3]) % (len // 3)], data_s[index // 3]), 0), 0
-
-    # writer.close()
